@@ -30,9 +30,11 @@ jobs:
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
           npx supabase@latest functions deploy --project-ref "$SUPABASE_PROJECT_REF" || true
+        working-directory: clean_workflow/supabase
 
       - name: Push DB schema (optional, via npx)
         env:
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
           npx supabase@latest db push --project-ref "$SUPABASE_PROJECT_REF" || true
+        working-directory: clean_workflow/supabase
