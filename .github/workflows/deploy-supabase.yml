@@ -25,16 +25,31 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: npx supabase@latest login --token "$SUPABASE_ACCESS_TOKEN"
 
-      - name: Deploy Supabase functions (via npx)
+      - name: Deploy Supabase functions (via npx loop)
         env:
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
-          npx supabase@latest functions deploy --project-ref "$SUPABASE_PROJECT_REF" --workdir . --all || true
-        working-directory: clean_workflow/supabase
+          set -e
+          cd clean_workflow/supabase
+          if [ -d functions ]; then
+            for f in functions/*; do
+              if [ -d "$f" ]; then
+                name=$(basename "$f")
+                echo "Deploying function: $name"
+                npx supabase@latest functions deploy "$name" --project-ref "$SUPABASE_PROJECT_REF" --workdir . || true
+              fi
+            done
+          else
+            echo "No functions directory found in clean_workflow/supabase"
+          fi
 
-      - name: Push DB schema (optional, via npx)
+      - name: Link project and Push DB schema (optional, via npx)
         env:
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
+          set -e
+          cd clean_workflow/supabase
+          echo "Linking supabase project ref"
+          npx supabase@latest link --project-ref "$SUPABASE_PROJECT_REF" --workdir . || true
+          echo "Pushing DB schema"
           npx supabase@latest db push --workdir . --yes || true
-        working-directory: clean_workflow/supabase
