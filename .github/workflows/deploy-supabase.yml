@@ -11,30 +11,28 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Install Supabase CLI
-        run: npm install -g supabase
-
-      - name: Login to Supabase CLI
+      - name: Login to Supabase CLI (via npx)
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase login --token "$SUPABASE_ACCESS_TOKEN"
+        run: npx supabase@latest login --token "$SUPABASE_ACCESS_TOKEN"
 
-      - name: Deploy Supabase functions
+      - name: Deploy Supabase functions (via npx)
         env:
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
-          # Deploy all functions found under the repository's supabase/functions folder
-          npx supabase functions deploy --project-ref "$SUPABASE_PROJECT_REF" || true
+          npx supabase@latest functions deploy --project-ref "$SUPABASE_PROJECT_REF" || true
 
-      - name: Push DB schema (optional)
+      - name: Push DB schema (optional, via npx)
         env:
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
-          # Push schema if you maintain a local supabase project or schema files
-          npx supabase db push --project-ref "$SUPABASE_PROJECT_REF" || true
+          npx supabase@latest db push --project-ref "$SUPABASE_PROJECT_REF" || true
